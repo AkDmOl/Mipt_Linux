@@ -1,12 +1,12 @@
 #!/bin/bash
 
-usage="$(basename "$0") [-h] [-s source_directory] [-d destination_directory] [-n name_archive] [-e extensions] --backup all files with code and those extension 
+usage="$(basename "$0") [-h] [-s source_directory] [-d destination_directory] [-n name_archive] [-e extentions] --backup all files with code and those extention 
 where:
     -h  show this help text
     -s  source directory
     -d  destination directory
     -n  name archive
-    -e  comma-separated extensions of files"
+    -e  space-separated extensions of files"
 
 while [[ $# -gt 0 ]]
 do
@@ -29,7 +29,7 @@ case $key in
     shift
     ;;
     -e)
-    EXTENSIONS="$2"
+    EXTENTIONS="$@"
     shift # past argument
     shift # past value
     ;;
@@ -37,15 +37,32 @@ case $key in
     echo "${usage}"
     shift
     ;;
-    *)    # unknown option
+    -*)    # unknown option
     echo "Error Unknown option $*"
     echo "Try ${usage}"
     shift # past argument
     ;;
+    *)
+    shift
+    ;;
 esac
 done
- 
 
+for extention in $EXTENTIONS
+do 
+    find $SOURCE -name *.$extention > all_files
+    input="./all_files"
+    while IFS= read -r full_filename
+    do
+	full="$full_filename"
+	path=${full%/*}
+	#echo "$path"
+	mkdir -p ./$DEST/$path
+	cp $full_filename ./$DEST/$full_filename
+    done < "$input"
+done
 
-echo "${EXTENSIONS}"
-echo "${SEARCHPATH}"
+tar -cf $NAME.tar.gz $DEST
+rm -r $DEST
+echo "done"
+
